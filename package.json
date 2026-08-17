@@ -1,7 +1,7 @@
 {
   "name": "@tradejs/strategy-head-and-shoulders",
   "version": "3.0.0",
-  "description": "HeadAndShoulders strategy plugin for TradeJS.",
+  "description": "Head-and-shoulders and inverse-pattern strategy with neckline confirmation, retests, and pattern-height risk targets for TradeJS.",
   "type": "module",
   "packageManager": "yarn@4.13.0",
   "engines": {
@@ -12,7 +12,10 @@
     "trading",
     "strategy",
     "plugin",
-    "backtesting"
+    "backtesting",
+    "ai",
+    "claude",
+    "codex"
   ],
   "homepage": "https://tradejs.dev",
   "repository": {

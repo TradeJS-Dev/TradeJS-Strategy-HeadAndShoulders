@@ -2,6 +2,13 @@
 
 TradeJS strategy plugin providing `HeadAndShoulders`.
 
+## Strategy overview
+
+`HeadAndShoulders` detects bearish head-and-shoulders and optional bullish
+inverse formations from pivots. It checks shoulder symmetry, head prominence,
+neckline slope, prior trend, and pattern age, then supports breakout,
+close-acceptance, or retest entries with height-based risk geometry.
+
 ## Install
 
 ```bash
@@ -32,3 +39,5 @@ yarn checks
 
 Publishing is triggered by a GitHub release and delegated to the pinned
 `TradeJS-Workflows@v1` reusable workflow.
+
+Keywords: ai, claude, codex.
