@@ -9,6 +9,10 @@ inverse formations from pivots. It checks shoulder symmetry, head prominence,
 neckline slope, prior trend, and pattern age, then supports breakout,
 close-acceptance, or retest entries with height-based risk geometry.
 
+## Logic at a glance
+
+![HeadAndShoulders strategy logic](https://raw.githubusercontent.com/TradeJS-Dev/TradeJS-Strategy-HeadAndShoulders/main/docs/strategy-logic.svg)
+
 ## Install
 
 ```bash
