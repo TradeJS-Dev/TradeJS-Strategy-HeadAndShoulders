@@ -13,6 +13,15 @@ close-acceptance, or retest entries with height-based risk geometry.
 
 ![HeadAndShoulders strategy logic](https://raw.githubusercontent.com/TradeJS-Dev/TradeJS-Strategy-HeadAndShoulders/main/docs/strategy-logic.svg)
 
+## Signal on an example chart
+
+This bearish example identifies the two shoulders, prominent head, fitted neckline, and the accepted breakdown that releases a SHORT signal.
+
+![HeadAndShoulders signal on an illustrative ticker chart](https://raw.githubusercontent.com/TradeJS-Dev/TradeJS-Strategy-HeadAndShoulders/main/docs/signal-example.svg)
+
+The illustration is schematic, not market data. Exact thresholds, confirmation
+rules, and risk parameters come from the active TradeJS strategy config.
+
 ## Install
 
 ```bash
