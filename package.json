@@ -1,6 +1,6 @@
 {
   "name": "@tradejs/strategy-head-and-shoulders",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Head-and-shoulders and inverse-pattern strategy with neckline confirmation, retests, and pattern-height risk targets for TradeJS.",
   "type": "module",
   "packageManager": "yarn@4.13.0",
