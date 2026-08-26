@@ -69,7 +69,7 @@ Interpretation rules for HeadAndShoulders:
 export const headAndShouldersAiAdapter = withStrategyLocalAiGate(
   headAndShouldersBaseAiAdapter,
   {
-    id: "head_and_shoulders_short_wick_breadth_2026_08_12",
+    id: "head_and_shoulders_short_wick_breadth_long_poc_slope_2026_08_26",
     approves: ({ signal, payload }) => {
       const upperWickPct = getAiPayloadNumber(
         payload,
@@ -79,13 +79,26 @@ export const headAndShouldersAiAdapter = withStrategyLocalAiGate(
         payload,
         "additionalIndicators.baseContext.relative.btcAltRegime.altBasketReturn24h",
       );
+      const distanceToPointOfControlAtr = getAiPayloadNumber(
+        payload,
+        "additionalIndicators.baseContext.participation.priceVolumeProfile.distanceToPointOfControlAtr",
+      );
+      const centerlineSlope = getAiPayloadNumber(
+        payload,
+        "additionalIndicators.baseContext.regime.trend.adaptiveChannel.centerlineSlope",
+      );
 
       return (
-        signal.direction === "SHORT" &&
-        upperWickPct != null &&
-        upperWickPct <= 0.3 &&
-        altBasketReturn24h != null &&
-        altBasketReturn24h >= -0.005
+        (signal.direction === "SHORT" &&
+          upperWickPct != null &&
+          upperWickPct <= 0.3 &&
+          altBasketReturn24h != null &&
+          altBasketReturn24h >= -0.005) ||
+        (signal.direction === "LONG" &&
+          distanceToPointOfControlAtr != null &&
+          distanceToPointOfControlAtr >= 2 &&
+          centerlineSlope != null &&
+          centerlineSlope >= 0)
       );
     },
   },

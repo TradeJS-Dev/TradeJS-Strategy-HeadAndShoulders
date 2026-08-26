@@ -5,10 +5,14 @@ const evaluateLocalGate = ({
   direction = "SHORT",
   upperWickPct = 0.3,
   altBasketReturn24h = -0.005,
+  distanceToPointOfControlAtr = 2,
+  centerlineSlope = 0,
 }: {
   direction?: Direction;
   upperWickPct?: number;
   altBasketReturn24h?: number;
+  distanceToPointOfControlAtr?: number;
+  centerlineSlope?: number;
 } = {}) =>
   headAndShouldersAiAdapter.postProcessLocalAnalysis?.({
     signal: {
@@ -20,6 +24,10 @@ const evaluateLocalGate = ({
         baseContext: {
           structure: { candleQuality: { upperWickPct } },
           relative: { btcAltRegime: { altBasketReturn24h } },
+          participation: {
+            priceVolumeProfile: { distanceToPointOfControlAtr },
+          },
+          regime: { trend: { adaptiveChannel: { centerlineSlope } } },
         },
       },
     } as unknown as AiPayload,
@@ -55,12 +63,36 @@ describe("HeadAndShoulders AI adapter", () => {
     );
   });
 
+  it("approves the frozen LONG POC/slope boundary", () => {
+    expect(evaluateLocalGate({ direction: "LONG" })).toEqual(
+      expect.objectContaining({
+        direction: "LONG",
+        quality: 4,
+        approved: true,
+        gateDecision: "approved",
+      }),
+    );
+  });
+
   it.each([
-    ["LONG direction", { direction: "LONG" as Direction }],
     ["upper wick above boundary", { upperWickPct: 0.300001 }],
     ["breadth below boundary", { altBasketReturn24h: -0.005001 }],
   ])("rejects %s", (_name, overrides) => {
     expect(evaluateLocalGate(overrides)).toEqual(
+      expect.objectContaining({
+        direction: null,
+        quality: 3,
+        approved: false,
+        gateDecision: "rejected",
+      }),
+    );
+  });
+
+  it.each([
+    ["POC distance below boundary", { distanceToPointOfControlAtr: 1.999999 }],
+    ["negative channel slope", { centerlineSlope: -0.000001 }],
+  ])("rejects LONG when %s", (_name, overrides) => {
+    expect(evaluateLocalGate({ direction: "LONG", ...overrides })).toEqual(
       expect.objectContaining({
         direction: null,
         quality: 3,
