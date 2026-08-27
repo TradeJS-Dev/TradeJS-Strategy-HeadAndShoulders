@@ -9,6 +9,11 @@ inverse formations from pivots. It checks shoulder symmetry, head prominence,
 neckline slope, prior trend, and pattern age, then supports breakout,
 close-acceptance, or retest entries with height-based risk geometry.
 
+When deterministic `AI_MODE: "gate"` is enabled, the strategy-local gate
+evaluates SHORT setups from candle-wick and alt-basket breadth context and LONG
+setups from point-of-control distance and adaptive-channel slope. Missing
+required gate features fail closed.
+
 ## Logic at a glance
 
 ![HeadAndShoulders strategy logic](https://raw.githubusercontent.com/TradeJS-Dev/TradeJS-Strategy-HeadAndShoulders/main/docs/strategy-logic.svg)
