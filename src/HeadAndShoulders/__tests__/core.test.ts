@@ -137,6 +137,36 @@ const createCore = async (
 };
 
 describe("HeadAndShoulders core", () => {
+  it("keeps execution-only stress out of admission and sizing", async () => {
+    const baseline = await createCore();
+    const stressed = await createCore(null, {
+      SLIPPAGE_BASE_BPS: 100,
+      MAKER_FEE_RATE: 0.1,
+      TAKER_FEE_RATE: 0.1,
+    });
+    expect(
+      await stressed.core(
+        stressed.currentCandle as any,
+        stressed.currentCandle as any,
+      ),
+    ).toEqual(
+      await baseline.core(
+        baseline.currentCandle as any,
+        baseline.currentCandle as any,
+      ),
+    );
+    const explicitRisk = await createCore(null, { RISK_SLIPPAGE_BPS: 100 });
+    const result = await explicitRisk.core(
+      explicitRisk.currentCandle as any,
+      explicitRisk.currentCandle as any,
+    );
+    const base = await createCore();
+    const original = await base.core(
+      base.currentCandle as any,
+      base.currentCandle as any,
+    );
+    expect(result).not.toEqual(original);
+  });
   it("creates a sized short entry with geometry and signal context", async () => {
     const { core, currentCandle } = await createCore();
 
