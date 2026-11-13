@@ -1,0 +1,24 @@
+{
+  "schema": "tradejs-launch-report/v1",
+  "strategy": "HeadAndShoulders",
+  "candidate": "Rebuilt long POC/slope and short wick/breadth gates",
+  "sourceSha256": "2ae37194cf86797af8dbabb551a5dc39edf99370fdea935999309298e5dc72ec",
+  "metrics": {
+    "trades": 393,
+    "pnl": 485.19000000000017,
+    "maxDrawdown": 76.75999999999999,
+    "maxLossStreak": 5,
+    "profitFactor": 1.336020444204358,
+    "winRatePercent": 65.39440203562341,
+    "maxDrawdownDurationDays": 690.8854166666666
+  },
+  "researchRiskUsdt": 10,
+  "period": {
+    "start": 1632420900000,
+    "end": 1787641200000
+  },
+  "chart": {
+    "caption": "Historical cumulative P&L and drawdown from peak, in USDT.",
+    "sha256": "769a1abfd235e4bb3085c7e397fa2338b1622b75050ef0f038f72e58d654848f"
+  }
+}
