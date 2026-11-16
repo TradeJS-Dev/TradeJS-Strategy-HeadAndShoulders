@@ -28,6 +28,21 @@ const headAndShouldersBaseAiAdapter: StrategyAiAdapter = {
   }),
   buildHumanPromptAddon: ({ payload }) => {
     const context = getContext(payload);
+    const wideContext =
+      context.wideContextIsolationRatio == null
+        ? ""
+        : `
+- wideContextIsolationRatio=${context.wideContextIsolationRatio}
+- wideContextBars=${context.wideContextBars}
+- wideContextStartTimestamp=${context.wideContextStartTimestamp}
+- wideContextCompetingExtreme=${context.wideContextCompetingExtreme}`;
+    const textbookGeometry =
+      context.textbookTemporalLegBalanceRatio == null
+        ? ""
+        : `
+- textbookTemporalLegBalanceRatio=${context.textbookTemporalLegBalanceRatio}
+- textbookShoulderLobeBalanceRatio=${context.textbookShoulderLobeBalanceRatio}
+- textbookMinShoulderLobeHeightRatio=${context.textbookMinShoulderLobeHeightRatio}`;
     return `
 Additional HeadAndShoulders context:
 - patternKind=${context.patternKind ?? "n/a"}
@@ -41,7 +56,7 @@ Additional HeadAndShoulders context:
 - shoulderDifferencePct=${String(context.shoulderDifferencePct ?? "n/a")}
 - leftHeadProminenceRatio=${String(context.leftHeadProminenceRatio ?? "n/a")}
 - rightHeadProminenceRatio=${String(context.rightHeadProminenceRatio ?? "n/a")}
-- patternSymmetryRatio=${String(context.patternSymmetryRatio ?? "n/a")}
+- patternSymmetryRatio=${String(context.patternSymmetryRatio ?? "n/a")}${wideContext}${textbookGeometry}
 - priorMoveAtr=${String(context.priorMoveAtr ?? "n/a")}
 - breakoutDistanceAtr=${String(context.breakoutDistanceAtr ?? "n/a")}
 - breakoutDistanceHeightRatio=${String(context.breakoutDistanceHeightRatio ?? "n/a")}

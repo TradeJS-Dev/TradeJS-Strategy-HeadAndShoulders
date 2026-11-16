@@ -44,6 +44,12 @@ const buildHeadAndShouldersStateKey = (config: HeadAndShouldersConfig) =>
     minPatternSymmetryRatio: config.HEADSHOULDERS_MIN_PATTERN_SYMMETRY_RATIO,
     maxNecklineSlopeRatio: config.HEADSHOULDERS_MAX_NECKLINE_SLOPE_RATIO,
     maxPatternAgeBars: config.HEADSHOULDERS_MAX_PATTERN_AGE_BARS,
+    ...(config.HEADSHOULDERS_REQUIRE_WIDE_CONTEXT_ISOLATION && {
+      requireWideContextIsolation: true,
+    }),
+    ...(config.HEADSHOULDERS_REQUIRE_TEXTBOOK_GEOMETRY && {
+      requireTextbookGeometry: true,
+    }),
     priorTrendLookback: config.HEADSHOULDERS_PRIOR_TREND_LOOKBACK,
     maxPriorMoveAtr: config.HEADSHOULDERS_MAX_PRIOR_MOVE_ATR,
     minBreakoutDistanceAtr: config.HEADSHOULDERS_MIN_BREAKOUT_DISTANCE_ATR,

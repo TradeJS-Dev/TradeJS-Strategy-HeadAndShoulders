@@ -1,5 +1,7 @@
 /** @jest-environment node */
 
+import type { AiPayload } from "@tradejs/types";
+import { headAndShouldersAiAdapter } from "../adapters/ai";
 import { config as DEFAULT_CONFIG } from "../config";
 import { createHeadAndShouldersCore } from "../core";
 import { createTestStateController } from "../../testUtils/stateControllerTestUtils";
@@ -168,7 +170,7 @@ describe("HeadAndShoulders core", () => {
     expect(result).not.toEqual(original);
   });
   it("creates a sized short entry with geometry and signal context", async () => {
-    const { core, currentCandle } = await createCore();
+    const { core, currentCandle, strategyApi } = await createCore();
 
     const result = await core(currentCandle as any, currentCandle as any);
 
@@ -177,10 +179,24 @@ describe("HeadAndShoulders core", () => {
     expect((result as any).entryContext.direction).toBe("SHORT");
     expect((result as any).orderPlan.qty).toBeGreaterThan(0);
     expect((result as any).signal.figures.lines).toHaveLength(4);
-    expect(
-      (result as any).signal.additionalIndicators.headAndShouldersContext
-        .patternKind,
-    ).toBe("head_and_shoulders");
+    const { signal, orderPlan } = result as any;
+    const prompt = headAndShouldersAiAdapter.buildHumanPromptAddon?.({
+      signal,
+      payload: {
+        additionalIndicators: signal.additionalIndicators,
+      } as AiPayload,
+    });
+    expect(prompt).toContain("Additional HeadAndShoulders context");
+
+    // Captured on main before integrating the optional geometry checks.
+    expect({
+      configKey: strategyApi.createStateController.mock.calls[0][2].configKey,
+      code: (result as any).code,
+      direction: signal.direction,
+      orderPlan,
+      signalContext: signal.additionalIndicators.headAndShouldersContext,
+      prompt,
+    }).toMatchSnapshot();
   });
 
   it("exits an opposite long position on a classic pattern", async () => {

@@ -43,6 +43,13 @@ export interface HeadAndShouldersPattern {
   patternSymmetryRatio: number;
   patternAgeBars: number;
   necklineSlopeRatio: number;
+  wideContextIsolationRatio?: number;
+  wideContextBars?: number;
+  wideContextStartTimestamp?: number;
+  wideContextCompetingExtreme?: number;
+  textbookTemporalLegBalanceRatio?: number;
+  textbookShoulderLobeBalanceRatio?: number;
+  textbookMinShoulderLobeHeightRatio?: number;
   priorMoveAtr: number | null;
   breakoutDistancePct: number;
   breakoutDistanceAtr: number;
@@ -82,6 +89,10 @@ interface EngineState {
   consumedSetupIds: string[];
   lastTimestamp: number | null;
 }
+
+const TEXTBOOK_MIN_TEMPORAL_LEG_BALANCE_RATIO = 0.35;
+const TEXTBOOK_MIN_SHOULDER_LOBE_BALANCE_RATIO = 0.5;
+const TEXTBOOK_MIN_SHOULDER_LOBE_HEIGHT_RATIO = 0.2;
 
 const asNumber = (value: unknown): number | null => {
   const numeric = Number(value);
@@ -180,6 +191,12 @@ const getConfigNumbers = (config: HeadAndShouldersConfig) => ({
   maxPatternAgeBars: Math.max(
     4,
     Math.floor(Number(config.HEADSHOULDERS_MAX_PATTERN_AGE_BARS ?? 220)),
+  ),
+  requireWideContextIsolation: Boolean(
+    config.HEADSHOULDERS_REQUIRE_WIDE_CONTEXT_ISOLATION,
+  ),
+  requireTextbookGeometry: Boolean(
+    config.HEADSHOULDERS_REQUIRE_TEXTBOOK_GEOMETRY,
   ),
   priorTrendLookback: Math.max(
     1,
@@ -451,6 +468,118 @@ const isBeyondNeckline = (
     ? close >= neckline + minimumDistance
     : close <= neckline - minimumDistance;
 
+interface WideContextIsolation {
+  isolationRatio: number;
+  bars: number;
+  startTimestamp: number;
+  competingExtreme: number;
+}
+
+interface TextbookGeometry {
+  temporalLegBalanceRatio: number;
+  shoulderLobeBalanceRatio: number;
+  minShoulderLobeHeightRatio: number;
+}
+
+const ratioOfSmallerToLarger = (left: number, right: number) => {
+  const largest = Math.max(left, right);
+  return largest > 0 ? Math.min(left, right) / largest : 0;
+};
+
+const resolveTextbookGeometry = ({
+  direction,
+  leftShoulder,
+  leftNeck,
+  head,
+  rightNeck,
+  rightShoulder,
+  headHeight,
+}: {
+  direction: Direction;
+  leftShoulder: HeadAndShouldersPivot;
+  leftNeck: HeadAndShouldersPivot;
+  head: HeadAndShouldersPivot;
+  rightNeck: HeadAndShouldersPivot;
+  rightShoulder: HeadAndShouldersPivot;
+  headHeight: number;
+}): TextbookGeometry => {
+  const firstLegBars = leftNeck.index - leftShoulder.index;
+  const secondLegBars = head.index - leftNeck.index;
+  const thirdLegBars = rightNeck.index - head.index;
+  const fourthLegBars = rightShoulder.index - rightNeck.index;
+  const leftLobeHeight =
+    direction === "SHORT"
+      ? leftShoulder.value - leftNeck.value
+      : leftNeck.value - leftShoulder.value;
+  const rightLobeHeight =
+    direction === "SHORT"
+      ? rightShoulder.value - rightNeck.value
+      : rightNeck.value - rightShoulder.value;
+
+  return {
+    temporalLegBalanceRatio: Math.min(
+      ratioOfSmallerToLarger(firstLegBars, secondLegBars),
+      ratioOfSmallerToLarger(thirdLegBars, fourthLegBars),
+    ),
+    shoulderLobeBalanceRatio: ratioOfSmallerToLarger(
+      leftLobeHeight,
+      rightLobeHeight,
+    ),
+    minShoulderLobeHeightRatio:
+      headHeight > 0
+        ? Math.min(leftLobeHeight, rightLobeHeight) / headHeight
+        : 0,
+  };
+};
+
+const resolveWideContextIsolation = ({
+  state,
+  direction,
+  leftShoulder,
+  head,
+  rightShoulder,
+  headHeight,
+}: {
+  state: EngineState;
+  direction: Direction;
+  leftShoulder: HeadAndShouldersPivot;
+  head: HeadAndShouldersPivot;
+  rightShoulder: HeadAndShouldersPivot;
+  headHeight: number;
+}): WideContextIsolation | null => {
+  const patternWidth = rightShoulder.index - leftShoulder.index;
+  const startIndex = leftShoulder.index - patternWidth;
+  if (patternWidth <= 0 || startIndex < state.candleStartIndex) return null;
+
+  const startCandle = getBufferedCandle(state, startIndex);
+  if (!startCandle) return null;
+
+  let competingExtreme: number | null = null;
+  for (let index = startIndex; index <= state.currentIndex; index += 1) {
+    if (index === head.index) continue;
+    const candle = getBufferedCandle(state, index);
+    const value = asNumber(direction === "SHORT" ? candle?.high : candle?.low);
+    if (value == null) return null;
+    competingExtreme =
+      competingExtreme == null
+        ? value
+        : direction === "SHORT"
+          ? Math.max(competingExtreme, value)
+          : Math.min(competingExtreme, value);
+  }
+  if (competingExtreme == null || headHeight <= 0) return null;
+
+  return {
+    isolationRatio:
+      direction === "SHORT"
+        ? (head.value - competingExtreme) / headHeight
+        : (competingExtreme - head.value) / headHeight,
+    bars: state.currentIndex - startIndex + 1,
+    startTimestamp: startCandle.timestamp,
+    competingExtreme,
+  };
+};
+
 const buildBreakoutPattern = ({
   state,
   candle,
@@ -516,6 +645,25 @@ const buildBreakoutPattern = ({
     return null;
   }
 
+  const requiresWideContextIsolation =
+    options.requireWideContextIsolation || options.requireTextbookGeometry;
+  const wideContextIsolation = requiresWideContextIsolation
+    ? resolveWideContextIsolation({
+        state,
+        direction,
+        leftShoulder,
+        head,
+        rightShoulder,
+        headHeight,
+      })
+    : null;
+  if (
+    requiresWideContextIsolation &&
+    (wideContextIsolation == null || wideContextIsolation.isolationRatio < 0)
+  ) {
+    return null;
+  }
+
   const leftShoulderNeckline = lineValueAt({
     left: leftNeck,
     right: rightNeck,
@@ -534,6 +682,33 @@ const buildBreakoutPattern = ({
         rightShoulder.value > rightShoulderNeckline;
   if (!shouldersRemainOnPatternSide) return null;
 
+  const textbookGeometry = options.requireTextbookGeometry
+    ? resolveTextbookGeometry({
+        direction,
+        leftShoulder,
+        leftNeck,
+        head,
+        rightNeck,
+        rightShoulder,
+        headHeight,
+      })
+    : null;
+  const priorMoveAtr = leftShoulder.priorMoveAtr ?? null;
+  if (
+    options.requireTextbookGeometry &&
+    (textbookGeometry == null ||
+      textbookGeometry.temporalLegBalanceRatio <
+        TEXTBOOK_MIN_TEMPORAL_LEG_BALANCE_RATIO ||
+      textbookGeometry.shoulderLobeBalanceRatio <
+        TEXTBOOK_MIN_SHOULDER_LOBE_BALANCE_RATIO ||
+      textbookGeometry.minShoulderLobeHeightRatio <
+        TEXTBOOK_MIN_SHOULDER_LOBE_HEIGHT_RATIO ||
+      priorMoveAtr == null ||
+      priorMoveAtr < 0)
+  ) {
+    return null;
+  }
+
   const patternDurationBars = rightShoulder.index - leftShoulder.index;
   const leftHalfBars = head.index - leftShoulder.index;
   const rightHalfBars = rightShoulder.index - head.index;
@@ -548,7 +723,6 @@ const buildBreakoutPattern = ({
     (rightNeck.value - leftNeck.value) / (rightNeck.index - leftNeck.index);
   const necklineSlopeRatio =
     Math.abs(rightNeck.value - leftNeck.value) / headHeight;
-  const priorMoveAtr = leftShoulder.priorMoveAtr ?? null;
   if (
     patternDurationBars < options.minPatternBars ||
     patternDurationBars > options.maxPatternBars ||
@@ -632,6 +806,19 @@ const buildBreakoutPattern = ({
     patternSymmetryRatio,
     patternAgeBars,
     necklineSlopeRatio,
+    ...(wideContextIsolation && {
+      wideContextIsolationRatio: wideContextIsolation.isolationRatio,
+      wideContextBars: wideContextIsolation.bars,
+      wideContextStartTimestamp: wideContextIsolation.startTimestamp,
+      wideContextCompetingExtreme: wideContextIsolation.competingExtreme,
+    }),
+    ...(textbookGeometry && {
+      textbookTemporalLegBalanceRatio: textbookGeometry.temporalLegBalanceRatio,
+      textbookShoulderLobeBalanceRatio:
+        textbookGeometry.shoulderLobeBalanceRatio,
+      textbookMinShoulderLobeHeightRatio:
+        textbookGeometry.minShoulderLobeHeightRatio,
+    }),
     priorMoveAtr,
     breakoutDistancePct,
     breakoutDistanceAtr,
@@ -796,6 +983,18 @@ export const buildHeadAndShouldersSignalContext = (
   patternSymmetryRatio: pattern.patternSymmetryRatio,
   patternAgeBars: pattern.patternAgeBars,
   necklineSlopeRatio: pattern.necklineSlopeRatio,
+  ...(pattern.wideContextIsolationRatio !== undefined && {
+    wideContextIsolationRatio: pattern.wideContextIsolationRatio,
+    wideContextBars: pattern.wideContextBars,
+    wideContextStartTimestamp: pattern.wideContextStartTimestamp,
+    wideContextCompetingExtreme: pattern.wideContextCompetingExtreme,
+  }),
+  ...(pattern.textbookTemporalLegBalanceRatio !== undefined && {
+    textbookTemporalLegBalanceRatio: pattern.textbookTemporalLegBalanceRatio,
+    textbookShoulderLobeBalanceRatio: pattern.textbookShoulderLobeBalanceRatio,
+    textbookMinShoulderLobeHeightRatio:
+      pattern.textbookMinShoulderLobeHeightRatio,
+  }),
   priorMoveAtr: pattern.priorMoveAtr,
   breakoutDistancePct: pattern.breakoutDistancePct,
   breakoutDistanceAtr: pattern.breakoutDistanceAtr,
@@ -854,12 +1053,22 @@ export const createHeadAndShouldersEngine = ({
 
     const previous = state.candles[state.candles.length - 1];
     const prevClose = previous ? asNumber(previous.close) : null;
-    const maxCandles = Math.max(
+    const legacyMaxCandles = Math.max(
       options.pivotLookback * 2 + 1,
       options.atrPeriod + 1,
       options.priorTrendLookback + options.pivotLookback + 1,
       options.confirmationVolumePeriod + 1,
     );
+    const maxCandles =
+      options.requireWideContextIsolation || options.requireTextbookGeometry
+        ? Math.max(
+            legacyMaxCandles,
+            options.maxPatternAgeBars +
+              options.maxPatternBars +
+              options.pivotLookback +
+              1,
+          )
+        : legacyMaxCandles;
     const currentIndex = pushBoundedCandle(state, candle, maxCandles);
     const atr = calculateAtr(state.candles, options.atrPeriod);
     const pendingPattern = resolvePending({ state, candle, atr, options });

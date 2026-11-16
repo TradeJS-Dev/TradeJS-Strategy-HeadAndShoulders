@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HeadAndShoulders core creates a sized short entry with geometry and signal context 1`] = `
+{
+  "code": "HEADSHOULDERS_CLASSIC_BREAKOUT",
+  "configKey": "{"pivotLookback":1,"shoulderTolerancePct":50,"minHeadProminenceRatio":0.1,"targetHeightPct":100,"targetHeightPctLong":120,"targetHeightPctShort":100,"stopBufferHeightPct":5,"minHeadHeightPct":0,"minHeadHeightAtr":0,"atrPeriod":14,"minPatternBars":4,"maxPatternBars":180,"minPatternSymmetryRatio":0,"maxNecklineSlopeRatio":1,"maxPatternAgeBars":220,"priorTrendLookback":80,"maxPriorMoveAtr":0,"minBreakoutDistanceAtr":0,"maxBreakoutDistanceHeightRatio":0,"maxBreakoutDistancePct":5,"maxBreakoutDelayBars":8,"requireBreakoutCross":false,"entryMode":"breakout","confirmationMaxBars":2,"minConfirmationBodyAtr":0,"maxConfirmationCloseLocation":1,"confirmationVolumePeriod":20,"minConfirmationVolumeRel":0.8,"retestMaxBars":4,"retestToleranceAtr":0.25}",
+  "direction": "SHORT",
+  "orderPlan": {
+    "qty": 0.3644284986730248,
+    "stopLossPrice": 121.225,
+    "takeProfits": [
+      {
+        "price": 72.5,
+        "rate": 1,
+      },
+    ],
+  },
+  "prompt": "Additional HeadAndShoulders context:
+- patternKind=head_and_shoulders
+- signalDirection=SHORT
+- entryMode=breakout
+- entryStage=breakout
+- neckline=97
+- necklineSlopeRatio=0.04081632653061224
+- headHeightPct=25.654450261780106
+- headHeightAtr=2.1733870967741935
+- shoulderDifferencePct=4.081632653061225
+- leftHeadProminenceRatio=0.40816326530612246
+- rightHeadProminenceRatio=0.3673469387755102
+- patternSymmetryRatio=1
+- priorMoveAtr=n/a
+- breakoutDistanceAtr=0.2661290322580645
+- breakoutDistanceHeightRatio=0.12244897959183673
+- breakoutDelayBars=2
+- breakoutCrossedOnSignalBar=true
+- confirmationBodyAtr=n/a
+- confirmationCloseLocation=n/a
+- confirmationVolumeRel=n/a
+
+Interpretation rules for HeadAndShoulders:
+- SHORT is a classic head-and-shoulders neckline breakdown; LONG is the mirrored inverse pattern.
+- Prefer balanced shoulders, a clearly prominent head, a moderate neckline slope, and a compact breakout.
+- Treat strongly asymmetric patterns, shallow heads, or overextended breakouts as lower quality.",
+  "signalContext": {
+    "breakoutCrossedOnSignalBar": true,
+    "breakoutDelayBars": 2,
+    "breakoutDistanceAtr": 0.2661290322580645,
+    "breakoutDistanceHeightRatio": 0.12244897959183673,
+    "breakoutDistancePct": 3.0927835051546393,
+    "breakoutTimestamp": 1700000660000,
+    "confirmationBars": 0,
+    "confirmationBodyAtr": null,
+    "confirmationCloseLocation": null,
+    "confirmationVolumeRel": null,
+    "currentPrice": 94,
+    "entryMode": "breakout",
+    "entryStage": "breakout",
+    "executionEconomics": {
+      "grossRiskRatio": 0.7897153351698808,
+      "lossPerUnit": 27.440224999999995,
+      "netRiskRatio": 0.7774535376440975,
+      "rewardPerUnit": 21.3335,
+    },
+    "headHeight": 24.5,
+    "headHeightAtr": 2.1733870967741935,
+    "headHeightPct": 25.654450261780106,
+    "leftHeadProminenceRatio": 0.40816326530612246,
+    "neckline": 97,
+    "necklineSlopePerBar": 0.25,
+    "necklineSlopeRatio": 0.04081632653061224,
+    "patternAgeBars": 10,
+    "patternDurationBars": 8,
+    "patternKind": "head_and_shoulders",
+    "patternSymmetryRatio": 1,
+    "pivots": [
+      {
+        "kind": "high",
+        "timestamp": 1700000060000,
+        "value": 110,
+      },
+      {
+        "kind": "low",
+        "timestamp": 1700000180000,
+        "value": 95,
+      },
+      {
+        "kind": "high",
+        "timestamp": 1700000300000,
+        "value": 120,
+      },
+      {
+        "kind": "low",
+        "timestamp": 1700000420000,
+        "value": 96,
+      },
+      {
+        "kind": "high",
+        "timestamp": 1700000540000,
+        "value": 111,
+      },
+    ],
+    "priorMoveAtr": null,
+    "rightHeadProminenceRatio": 0.3673469387755102,
+    "setupId": "head_and_shoulders:1700000060000:1700000180000:1700000300000:1700000420000:1700000540000",
+    "shoulderDifferencePct": 4.081632653061225,
+    "signalDirection": "SHORT",
+    "stopLossPrice": 121.225,
+    "targetPrice": 72.5,
+  },
+}
+`;

@@ -3,6 +3,30 @@ import path from "node:path";
 import { strategyEntries } from "../index";
 
 describe("strategy config contract", () => {
+  it("keeps wide-context isolation default-off and boolean", () => {
+    const [entry] = strategyEntries;
+
+    expect(entry.defaults.HEADSHOULDERS_REQUIRE_WIDE_CONTEXT_ISOLATION).toBe(
+      false,
+    );
+    expect(
+      entry.parseConfig({
+        HEADSHOULDERS_REQUIRE_WIDE_CONTEXT_ISOLATION: true,
+      }).HEADSHOULDERS_REQUIRE_WIDE_CONTEXT_ISOLATION,
+    ).toBe(true);
+  });
+
+  it("keeps textbook geometry default-off and boolean", () => {
+    const [entry] = strategyEntries;
+
+    expect(entry.defaults.HEADSHOULDERS_REQUIRE_TEXTBOOK_GEOMETRY).toBe(false);
+    expect(
+      entry.parseConfig({
+        HEADSHOULDERS_REQUIRE_TEXTBOOK_GEOMETRY: true,
+      }).HEADSHOULDERS_REQUIRE_TEXTBOOK_GEOMETRY,
+    ).toBe(true);
+  });
+
   it.each(strategyEntries)(
     "keeps decision costs explicit for $manifest.name",
     (entry) => {

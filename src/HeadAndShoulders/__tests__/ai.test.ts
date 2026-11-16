@@ -52,6 +52,27 @@ describe("HeadAndShoulders AI adapter", () => {
     );
   });
 
+  it("includes measured wide context without adding disabled textbook fields", () => {
+    const prompt = headAndShouldersAiAdapter.buildHumanPromptAddon?.({
+      signal: { direction: "SHORT" } as Signal,
+      payload: {
+        additionalIndicators: {
+          headAndShouldersContext: {
+            wideContextIsolationRatio: 0,
+            wideContextBars: 19,
+            wideContextStartTimestamp: 1_700_000_000_000,
+            wideContextCompetingExtreme: 120,
+          },
+        },
+      } as AiPayload,
+    });
+
+    expect(prompt).toContain(
+      "- wideContextIsolationRatio=0\n- wideContextBars=19",
+    );
+    expect(prompt).not.toContain("textbookTemporalLegBalanceRatio");
+  });
+
   it("approves the rounded SHORT wick/breadth boundary", () => {
     expect(evaluateLocalGate()).toEqual(
       expect.objectContaining({
